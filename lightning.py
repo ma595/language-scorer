@@ -5,9 +5,16 @@ from transformers import BertTokenizer, BertForSequenceClassification
 import pytorch_lightning as pl
 from typing import Dict
 
+
 # Dataset class
 class EssayDataset(Dataset):
-    def __init__(self, df: pd.DataFrame, tokenizer: BertTokenizer, target_label=None, max_length: int = 512):
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        tokenizer: BertTokenizer,
+        target_label=None,
+        max_length: int = 512,
+    ):
         self.data = df
         self.tokenizer = tokenizer
         self.max_length = max_length
@@ -36,6 +43,7 @@ class EssayDataset(Dataset):
 
         return data_dict
 
+
 # Data split utility
 def split_essay_data(full_dataset: Dataset):
     train_size = int(0.8 * len(full_dataset))
@@ -43,12 +51,15 @@ def split_essay_data(full_dataset: Dataset):
     torch.manual_seed(42)
     return random_split(full_dataset, [train_size, val_size])
 
+
 # Lightning Module
 class EssayScorer(pl.LightningModule):
     def __init__(self, model_name="bert-tiny", num_labels=4, lr=2e-5):
         super().__init__()
         self.save_hyperparameters()
-        self.model = BertForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
+        self.model = BertForSequenceClassification.from_pretrained(
+            model_name, num_labels=num_labels
+        )
         self.loss_fn = torch.nn.CrossEntropyLoss()
 
     def forward(self, input_ids, attention_mask):
@@ -74,6 +85,7 @@ class EssayScorer(pl.LightningModule):
     def configure_optimizers(self):
         return torch.optim.AdamW(self.parameters(), lr=self.hparams.lr)
 
+
 # Prepare data and dataloaders
 tokenizer = BertTokenizer.from_pretrained("bert-tiny")
 df = pd.read_csv("data/cleaned_dataset.csv")
@@ -87,4 +99,3 @@ val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
 model = EssayScorer()
 trainer = pl.Trainer(max_epochs=3, accelerator="auto", devices="auto")
 trainer.fit(model, train_loader, val_loader)
-
