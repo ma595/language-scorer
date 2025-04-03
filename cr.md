@@ -1,6 +1,6 @@
 ## Code review
 
-A quite reminder of what's going on in this code: 
+A quick reminder of what's going on in this code: 
 
 ### Background
 
